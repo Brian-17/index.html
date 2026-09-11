@@ -3,68 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BULLSEYE FX - AI Trading with MT5 Connection</title>
+<title>BULLSEYE FX - AI Trading with MT5 Connection, Cloud Bots & Free VPS</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap" rel="stylesheet">
-<style>body{font-family:'Space Grotesk', sans-serif}</style>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Space Grotesk',sans-serif;background:#050507}</style>
 </head>
-<body class="bg-[#08080a] text-white antialiased">
+<body class="bg-[#050507] text-white antialiased overflow-x-hidden">
 
-<nav class="flex justify-between items-center px-6 md:px-10 py-6 max-w-7xl mx-auto">
-  <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFD700] to-[#FF8C00] flex items-center justify-center text-black font-black text-xl">◎</div>
-    <span class="font-black tracking-[0.2em] text-lg">BULLSEYE <span class="text-[#FFD700]">FX</span></span>
+<!-- NAV - EXACT PIPNEX STYLE -->
+<nav class="flex justify-between items-center px-6 md:px-12 py-5 max-w-[1400px] mx-auto">
+  <div class="flex items-center gap-2.5">
+    <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center"><div class="w-3 h-3 bg-black rounded-full"></div></div>
+    <span class="font-semibold tracking-tight">BULLSEYE FX</span>
   </div>
-  <a href="#" class="bg-[#FFD700] text-black px-7 py-3 rounded-full font-bold text-sm">Connect MT5</a>
+  <div class="hidden md:flex items-center gap-8 text-[13px] text-gray-400">
+    <span>Features</span><span>How it Works</span><span>Pricing</span><span>FAQ</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="hidden md:block text-[13px] text-gray-400">Sign In</span>
+    <a href="/dashboard.html" class="bg-[#FFD60A] text-black px-5 py-2.5 rounded-full font-semibold text-[13px]">Connect MT5</a>
+  </div>
 </nav>
 
-<section class="max-w-7xl mx-auto px-6 pt-16 pb-10 text-center">
-  <div class="inline-flex items-center gap-2 bg-[#18181e] border border-[#FFD700]/20 px-5 py-2 rounded-full text-xs text-[#FFD700] mb-10">
-    <span class="w-2 h-2 bg-[#FFD700] rounded-full animate-pulse"></span>
-    Pipnex AI Model • AI Trading with MT5 Connection, Cloud Bots & Free VPS
+<!-- HERO - EXACT PIPNEX COPY -->
+<section class="max-w-[1400px] mx-auto px-6 md:px-12 pt-16 md:pt-28 text-center">
+  <div class="inline-flex items-center gap-2 bg-[#121214] border border-white/10 px-4 py-1.5 rounded-full text-[11px] tracking-wide text-gray-300">
+    <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> AI Trading with MT5 Connection, Cloud Bots & Free VPS
   </div>
 
-  <h1 class="text-[42px] md:text-[84px] font-black leading-[0.85] tracking-tighter">
-    AI TRADING<br>
-    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] to-[#FF8C00]">THAT RUNS ITSELF</span><br>
+  <h1 class="mt-8 text-[38px] md:text-[88px] font-medium leading-[0.9] tracking-[-0.04em]">
+    AI Trading<br>
+    <span class="text-[#FFD60A]">that runs itself</span><br>
     24/7
   </h1>
 
-  <p class="text-gray-400 mt-6 max-w-2xl mx-auto">Connect your MT5 account, run AI trading bots on free VPS, prompt-based trading, chart analysis, Smart Money Concepts and automated strategies — Bullseye Sniper Edition.</p>
+  <p class="text-gray-400 mt-6 max-w-[540px] mx-auto text-[14px] md:text-[15px] leading-relaxed">
+    Connect your MT5 account, run AI trading bots on free VPS, prompt-based trading, chart analysis, Smart Money Concepts and automated strategies.
+  </p>
 
-  <div class="mt-8 flex flex-col md:flex-row justify-center gap-4">
-    <button class="bg-[#FFD700] text-black px-10 py-4 rounded-full font-bold">Start Free on MT5</button>
-    <button class="border border-white/10 bg-white/5 px-10 py-4 rounded-full">See Live Myfxbook</button>
+  <div class="mt-8 flex flex-col md:flex-row justify-center gap-3">
+    <a href="/dashboard.html" class="bg-[#FFD60A] text-black px-8 py-3.5 rounded-full font-semibold text-sm">Start Free on MT5</a>
+    <button class="bg-[#1a1a1e] border border-white/10 px-8 py-3.5 rounded-full font-medium text-sm">See Live Myfxbook</button>
   </div>
 
-  <!-- DASHBOARD MOCK - This is what makes it look like Pipnex -->
-  <div class="mt-20 bg-[#111116] border border-[#FFD700]/10 rounded-[32px] p-3 max-w-5xl mx-auto shadow-[0_0_120px_rgba(255,215,0,0.15)]">
-    <div class="bg-black rounded-[20px] border border-white/5 grid md:grid-cols-2 overflow-hidden">
-      <div class="p-8 text-left font-mono text-xs">
-        <div class="text-[#FFD700] text-[11px]">● BULLSEYE SNIPER ENGINE • LIVE • NEW YORK OPEN</div>
-        <div class="mt-8 space-y-4">
-          <div class="flex justify-between"><span class="text-gray-500">4H BIAS</span><span class="text-white">BULLISH ✓</span></div>
-          <div class="flex justify-between"><span class="text-gray-500">LIQUIDITY</span><span class="text-white">SWEPT ✓</span></div>
-          <div class="flex justify-between"><span class="text-gray-500">MSS</span><span class="text-white">CONFIRMED ✓</span></div>
-          <div class="flex justify-between"><span class="text-gray-500">FVG</span><span class="text-white">ACTIONABLE ✓</span></div>
-          <div class="flex justify-between pt-4 border-t border-white/10 text-[#FFD700] font-bold text-sm"><span>SIGNAL</span><span>BULLSEYE BUY 🎯</span></div>
+  <!-- BIG DASHBOARD IMAGE - This is the key Pipnex look -->
+  <div class="mt-20 md:mt-28 relative">
+    <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#FFD60A]/10 blur-[120px] rounded-full pointer-events-none"></div>
+    <div class="bg-[#101012] border border-white/[0.08] rounded-[24px] md:rounded-[32px] p-2 md:p-3 max-w-5xl mx-auto">
+      <img src="https://i.imgur.com/8QJ4j5A.png" onerror="this.style.display='none'" class="hidden">
+      <!-- Mock of their terminal UI -->
+      <div class="bg-black rounded-[16px] md:rounded-[20px] overflow-hidden border border-white/5">
+        <div class="flex items-center gap-2 px-6 py-4 border-b border-white/5">
+          <div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div>
+          <span class="ml-4 text-[11px] text-gray-500">bullseye-terminal • zsh</span>
         </div>
-      </div>
-      <div class="bg-[#0a0a0f] p-8 flex items-center justify-center relative">
-        <div class="w-48 h-48 border border-[#FFD700]/10 rounded-full absolute"></div>
-        <div class="w-28 h-28 border border-[#FFD700]/20 rounded-full absolute"></div>
-        <div class="w-3 h-3 bg-[#FFD700] rounded-full shadow-[0_0_30px_#FFD700]"></div>
-        <div class="absolute bottom-6 left-8 text-[10px] text-gray-600">NAS100 • SMC • FVG • OB • P/D</div>
+        <div class="grid md:grid-cols-[280px_1fr] text-left">
+          <div class="p-6 border-r border-white/5 font-mono text-[11px] leading-6 text-gray-500">
+            <div class="text-white mb-4">◎ BULLSEYE SNIPER • LIVE</div>
+            NAS100 M15<br>
+            <span class="text-white">BULLISH BIAS ✓</span><br>
+            Sweep Confirmed<br>
+            MSS Confirmed<br>
+            FVG Active: 67240 - 67280<br><br>
+            <span class="text-[#FFD60A]">> executing BUY @ 67420...</span><br>
+            <span class="text-green-400">✓ Order placed: SL 67280 TP 67800</span>
+          </div>
+          <div class="bg-[#08080a] h-[340px] flex items-center justify-center relative">
+            <div class="w-64 h-64 border border-[#FFD60A]/10 rounded-full absolute"></div>
+            <div class="w-40 h-40 border border-[#FFD60A]/20 rounded-full absolute"></div>
+            <div class="w-2 h-2 bg-[#FFD60A] rounded-full shadow-[0_0_20px_#FFD60A]"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-6">
-  <div class="bg-[#131318] border border-white/5 p-8 rounded-3xl"><h3 class="font-bold text-lg">☁️ Cloud Bots</h3><p class="text-gray-400 text-sm mt-3">No need to keep PC on. Your Sniper runs 24/7 on our free VPS like Pipnex.</p></div>
-  <div class="bg-[#131318] border border-white/5 p-8 rounded-3xl"><h3 class="font-bold text-lg">🤖 Prompt Trading</h3><p class="text-gray-400 text-sm mt-3">Type "Buy NAS100 after sweep" and AI executes. Same as Pipnex prompt model.</p></div>
-  <div class="bg-[#131318] border border-white/5 p-8 rounded-3xl"><h3 class="font-bold text-lg">🎯 Smart Money</h3><p class="text-gray-400 text-sm mt-3">Liquidity Sweep → MSS → FVG/OB logic built-in. Not just indicator trading.</p></div>
+<!-- LOGOS / SOCIAL PROOF BAR LIKE PIPNEX -->
+<section class="max-w-[1400px] mx-auto px-12 py-16 flex justify-center gap-8 md:gap-16 opacity-30 text-xs tracking-widest">
+  <span>MT5</span><span>MYFXBOOK</span><span>TRADINGVIEW</span><span>VPS</span><span>AI</span>
 </section>
+
+<!-- FOOTER EXACT -->
+<footer class="border-t border-white/5 py-8 text-center text-[11px] text-gray-500">
+  © 2026 BULLSEYE FX • Inspired by Pipnex AI • Built for Sniper Precision
+</footer>
 
 </body>
 </html>
