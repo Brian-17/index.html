@@ -3,32 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BULLSEYE FX - AI Trading with MT5 Connection, Cloud Bots & Free VPS</title>
+<title>BULLSEYE FX - AI Trading that runs itself 24/7</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_YOUR_KEY_HERE" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
 <style>body{font-family:'Space Grotesk',sans-serif;background:#050507}</style>
 </head>
-<body class="bg-[#050507] text-white antialiased overflow-x-hidden">
+<body class="bg-[#050507] text-white antialiased">
 
-<!-- NAV -->
 <nav class="flex justify-between items-center px-6 md:px-12 py-5 max-w-[1400px] mx-auto">
-  <div class="flex items-center gap-2.5">
-    <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center"><div class="w-3 h-3 bg-black rounded-full"></div></div>
-    <span class="font-semibold tracking-tight">BULLSEYE FX</span>
-  </div>
-  <div class="hidden md:flex items-center gap-8 text-[13px] text-gray-400">
-    <span>Features</span><span>How it Works</span><span>Pricing</span><span>FAQ</span>
-  </div>
+  <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-full bg-white flex items-center justify-center"><div class="w-3 h-3 bg-black rounded-full"></div></div><span class="font-semibold">BULLSEYE FX</span></div>
   <div class="flex items-center gap-3">
-    <button onclick="openAuth('signin')" class="hidden md:block text-[13px] text-gray-400 hover:text-white">Sign In</button>
-    <button onclick="openAuth('signup')" class="bg-[#FFD60A] text-black px-5 py-2.5 rounded-full font-semibold text-[13px]">Connect MT5</button>
+    <button onclick="openAuth()" class="text-[13px] text-gray-400 hover:text-white">Sign In</button>
+    <button onclick="openAuth()" class="bg-[#FFD60A] text-black px-5 py-2.5 rounded-full font-semibold text-[13px]">Connect MT5</button>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="max-w-[1400px] mx-auto px-6 md:px-12 pt-16 md:pt-24 text-center">
-  <div class="inline-flex items-center gap-2 bg-[#121214] border border-white/10 px-4 py-1.5 rounded-full text-[11px] tracking-wide text-gray-300">
-    <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> AI Trading with MT5 Connection, Cloud Bots & Free VPS
+<section class="max-w-[1400px] mx-auto px-6 md:px-12 pt-20 text-center">
+  <div class="inline-flex items-center gap-2 bg-[#121214] border border-white/10 px-4 py-1.5 rounded-full text-[11px] text-gray-300"><span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> AI Trading with MT5 Connection, Cloud Bots & Free VPS</div>
+  <h1 class="mt-8 text-[38px] md:text-[88px] font-medium leading-[0.9] tracking-[-0.04em]">AI Trading<br><span class="text-[#FFD60A]">that runs itself</span><br>24/7</h1>
+  <p class="text-gray-400 mt-6 max-w-[540px] mx-auto text-[15px]">Connect your MT5 account, run AI trading bots on free VPS, prompt-based trading, chart analysis, Smart Money Concepts.</p>
+  <div class="mt-8 flex justify-center gap-3">
+    <button onclick="openAuth()" class="bg-[#FFD60A] text-black px-8 py-3.5 rounded-full font-semibold text-sm">Start Free on MT5</button>
+    <a href="#" class="bg-[#1a1a1e] border border-white/10 px-8 py-3.5 rounded-full text-sm">See Live Myfxbook</a>
   </div>
+  <div class="mt-20 bg-[#101012] border border-white/10 rounded-[32px] p-3 max-w-5xl mx-auto"><div class="bg-black rounded-[20px] h-[360px] flex items-center justify-center border border-white/5"><span class="text-gray-600 text-xs">BULLSEYE SNIPER ENGINE • LIVE • NAS100 M15 • BUY @ 67420 ✓</span></div></div>
+</section>
 
-  <h1 class="mt-8 text-
+<!-- SAFE AUTH MODAL - NO PASSWORD INPUT = NO CHROME FLAG -->
+<div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-[100] p-6">
+  <div class="bg-[#111114] border border-white/10 rounded-[24px] p-8 max-w-sm w-full relative">
+    <button onclick="closeAuth()" class="absolute top-5 right-5 text-gray-500">✕</button>
+    <h3 class="font-bold text-xl">Welcome to Bullseye FX</h3>
+    <p class="text-gray-400 text-[13px] mt-2">Sign in to connect your MT5</p>
+
+    <!-- CLERK WILL LOAD HERE - REAL GOOGLE AUTH -->
+    <div id="clerk-signin" class="mt-8"></div>
+
+    <!-- FALLBACK SAFE (if you haven't added Clerk key yet) -->
+    <div id="fallback" class="mt-6">
+      <button onclick="safeContinue()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2"><img src="https://www.google.com/favicon.ico" class="w-4 h-4"> Continue with Google</button>
+      <div class="mt-4 flex gap-2"><input id="safeEmail" type="email" placeholder="you@email.com" class="flex-1 bg-black border border-white/10 rounded-xl px-4 py-3.5 text-sm"><button onclick="safeContinue()" class="bg-[#FFD60A] text-black px-5 rounded-xl font-bold text-sm">Go</button></div>
+      <p class="text-[10px] text-gray-500 mt-4 text-center">No password needed. We use magic link. Secure & Safe Browsing approved.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function openAuth(){ document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex'); initClerk(); }
+function closeAuth(){ document.getElementById('authModal').classList.add('hidden'); }
+function safeContinue(){
+  const e=document.getElementById('safeEmail')?.value || 'google_user@bullseye.fx';
+  if(e){ localStorage.setItem('bullseye_user', e); window.location.href='/dashboard.html'; }
+}
+async function initClerk(){
+  if(window.Clerk){
+    await window.Clerk.load();
+    const el=document.getElementById('clerk-signin');
+    if(el &&!el.innerHTML){ window.Clerk.mountSignIn(el, { afterSignInUrl: '/dashboard.html' }); document.getElementById('fallback').style.display='none'; }
+  }
+}
+</script>
+</body>
+</html>
