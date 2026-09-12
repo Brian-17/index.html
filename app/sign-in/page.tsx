@@ -1,4 +1,9 @@
 import { SignIn } from "@clerk/nextjs";
-export default function Page(){
- return <div className="min-h-screen bg-[#050507] flex items-center justify-center p-4"><SignIn /></div>
+
+export default function Page() {
+  return (
+    <div style={{display:"flex", justifyContent:"center", alignItems:"center", minHeight:"100vh", background:"#050507"}}>
+      <SignIn />
+    </div>
+  );
 }
