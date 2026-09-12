@@ -7,12 +7,14 @@ export async function POST(req: Request) {
 
   const { login, password, server } = await req.json();
   
-  // TODO: Save to your DB - Supabase/Firebase
-  // For now just test connection
+  if(!login || !password || !server) {
+    return NextResponse.json({ error: "All fields required" }, { status: 400 });
+  }
+
   console.log("MT5 Connect for user", userId, login, server);
 
-  // Here you add your MetaAPI or your own MT5 bridge validation
-  // if validation fails, return error
+  // TODO: Save to Supabase / Your DB
+  // await supabase.from('mt5_accounts').insert({ user_id: userId, login, server })
 
-  return NextResponse.json({ message: `Account ${login} linked` });
+  return NextResponse.json({ message: `Account ${login} linked successfully` });
 }
