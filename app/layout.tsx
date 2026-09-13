@@ -13,12 +13,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="bg-[#050507] text-white antialiased">
+    <html lang="en">
+      <body className="bg-[#050507] text-white antialiased">
+        <ClerkProvider>
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
