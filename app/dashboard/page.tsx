@@ -1,5 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+
+type MT5Account = {
+  login: string;
+  server: string;
+  status: string;
+  balance: number;
+  equity: number;
+  connected_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 function BullseyeMark() {
   return (
@@ -10,11 +24,18 @@ function BullseyeMark() {
   );
 }
 
-function StatusDot() {
+function StatusDot({ active = true }: { active?: boolean }) {
   return (
     <span className="relative flex h-2 w-2">
-      <span className="absolute inline-flex h-full w-full rounded-full bg-[#FFD60A] opacity-40" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FFD60A]" />
+      {active && (
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FFD60A] opacity-40" />
+      )}
+
+      <span
+        className={`relative inline-flex h-2 w-2 rounded-full ${
+          active ? "bg-[#FFD60A]" : "bg-white/20"
+        }`}
+      />
     </span>
   );
 }
@@ -29,7 +50,7 @@ function StatCard({
   subtitle: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 transition hover:border-white/[0.12]">
       <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/25">
         {label}
       </p>
@@ -45,7 +66,56 @@ function StatCard({
   );
 }
 
+function formatMoney(value: number) {
+  return Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export default function DashboardPage() {
+  const [account, setAccount] = useState<MT5Account | null>(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [apiError, setApiError] = useState("");
+
+  useEffect(() => {
+    async function loadAccount() {
+      try {
+        setApiError("");
+
+        const response = await fetch("/api/mt5/account", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setApiError(data.error || "Unable to load MT5 account");
+          return;
+        }
+
+        if (data.account) {
+          setAccount(data.account);
+        } else {
+          setAccount(null);
+        }
+      } catch (error) {
+        console.error("Dashboard account error:", error);
+        setApiError("Unable to connect to Bullseye services.");
+      } finally {
+        setLoadingAccount(false);
+      }
+    }
+
+    loadAccount();
+  }, []);
+
+  const hasAccount = !!account;
+
+  const accountIsConnected =
+    account?.status?.toLowerCase() === "connected";
+
   return (
     <main className="min-h-screen bg-[#050506] text-white">
       {/* Background */}
@@ -74,10 +144,14 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-2 sm:flex">
-              <StatusDot />
+              <StatusDot active={hasAccount} />
 
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/35">
-                System
+                {loadingAccount
+                  ? "Checking"
+                  : hasAccount
+                    ? "Account Found"
+                    : "System Ready"}
               </span>
             </div>
 
@@ -109,15 +183,25 @@ export default function DashboardPage() {
             href="/connect-mt5"
             className="inline-flex h-11 items-center justify-center rounded-full bg-[#FFD60A] px-5 text-xs font-bold text-black transition hover:bg-[#ffe04a]"
           >
-            Connect MT5 →
+            {hasAccount ? "Update MT5 →" : "Connect MT5 →"}
           </Link>
         </div>
 
+        {/* API error */}
+        {apiError && (
+          <div className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/[0.05] px-5 py-4">
+            <p className="text-xs text-red-300">
+              {apiError}
+            </p>
+          </div>
+        )}
+
         {/* Connection banner */}
         <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-[#FFD60A]/15 bg-[#FFD60A]/[0.035] p-5 sm:flex-row sm:items-center sm:justify-between">
+
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFD60A]/10">
-              <StatusDot />
+              <StatusDot active={hasAccount} />
             </div>
 
             <div>
@@ -126,13 +210,23 @@ export default function DashboardPage() {
               </p>
 
               <p className="mt-1 text-[10px] text-white/30">
-                Account data is awaiting the live MT5 bridge.
+                {loadingAccount
+                  ? "Checking your MT5 account..."
+                  : account
+                    ? `Account ${account.login} • ${account.server}`
+                    : "No MT5 account connected yet."}
               </p>
             </div>
           </div>
 
           <span className="w-fit rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/35">
-            Pending
+            {loadingAccount
+              ? "Checking"
+              : accountIsConnected
+                ? "Connected"
+                : account
+                  ? "Saved"
+                  : "Not connected"}
           </span>
         </div>
 
@@ -141,26 +235,42 @@ export default function DashboardPage() {
 
           <StatCard
             label="Balance"
-            value="—"
-            subtitle="Awaiting live MT5 data"
+            value={
+              account
+                ? formatMoney(account.balance)
+                : "—"
+            }
+            subtitle={
+              account
+                ? "Stored MT5 balance"
+                : "Awaiting MT5 account"
+            }
           />
 
           <StatCard
             label="Equity"
-            value="—"
-            subtitle="Awaiting live MT5 data"
+            value={
+              account
+                ? formatMoney(account.equity)
+                : "—"
+            }
+            subtitle={
+              account
+                ? "Stored MT5 equity"
+                : "Awaiting MT5 account"
+            }
           />
 
           <StatCard
             label="Open Trades"
             value="—"
-            subtitle="Awaiting live MT5 data"
+            subtitle="Live MT5 bridge required"
           />
 
           <StatCard
             label="Win Rate"
             value="—"
-            subtitle="Performance data unavailable"
+            subtitle="Performance data pending"
           />
 
         </div>
@@ -168,7 +278,7 @@ export default function DashboardPage() {
         {/* Main grid */}
         <div className="mt-5 grid gap-5 lg:grid-cols-3">
 
-          {/* Chart */}
+          {/* Market chart */}
           <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 lg:col-span-2">
 
             <div className="flex items-center justify-between">
@@ -195,7 +305,9 @@ export default function DashboardPage() {
 
               <div className="text-center">
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                  <span className="text-sm text-white/25">⌁</span>
+                  <span className="text-sm text-white/25">
+                    ⌁
+                  </span>
                 </div>
 
                 <p className="mt-4 text-xs font-medium text-white/45">
@@ -217,20 +329,28 @@ export default function DashboardPage() {
             </p>
 
             <div className="mt-6 rounded-xl border border-white/[0.06] bg-black/20 p-4">
+
               <p className="text-[9px] uppercase tracking-[0.16em] text-white/20">
                 Status
               </p>
 
               <div className="mt-3 flex items-center gap-2">
-                <StatusDot />
+                <StatusDot active={hasAccount} />
 
                 <span className="text-sm font-semibold">
-                  Awaiting bridge
+                  {loadingAccount
+                    ? "Checking..."
+                    : accountIsConnected
+                      ? "Connected"
+                      : account
+                        ? "Account saved"
+                        : "Not connected"}
                 </span>
               </div>
             </div>
 
             <div className="mt-4 grid gap-3">
+
               <div className="flex items-center justify-between border-b border-white/[0.05] pb-3">
                 <span className="text-[10px] text-white/25">
                   Broker
@@ -251,6 +371,16 @@ export default function DashboardPage() {
                 </span>
               </div>
 
+              <div className="flex items-center justify-between border-b border-white/[0.05] pb-3">
+                <span className="text-[10px] text-white/25">
+                  Server
+                </span>
+
+                <span className="max-w-[160px] truncate text-[10px] font-medium text-white/50">
+                  {account?.server || "—"}
+                </span>
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-white/25">
                   Automation
@@ -260,6 +390,7 @@ export default function DashboardPage() {
                   24/7
                 </span>
               </div>
+
             </div>
           </div>
         </div>
@@ -285,21 +416,25 @@ export default function DashboardPage() {
 
           <div className="mt-5 flex min-h-32 items-center justify-center rounded-xl border border-white/[0.05] bg-black/20">
             <div className="text-center">
+
               <p className="text-xs font-medium text-white/35">
                 No live positions yet
               </p>
 
               <p className="mt-1 text-[10px] text-white/20">
-                Open trades will appear here once MT5 is connected.
+                Open trades will appear here once the MT5 bridge is active.
               </p>
+
             </div>
           </div>
         </div>
 
-        {/* AI */}
+        {/* AI and Automation */}
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
 
+          {/* AI */}
           <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
+
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/25">
               BULLSEYE AI
             </p>
@@ -309,22 +444,26 @@ export default function DashboardPage() {
             </h2>
 
             <p className="mt-3 text-xs leading-5 text-white/25">
-              AI strategy controls will become available after the MT5
-              connection is active.
+              AI strategy controls will become available after the
+              live MT5 connection is active.
             </p>
 
             <div className="mt-5 rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3">
+
               <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
                 Status
               </span>
 
               <p className="mt-1 text-xs text-white/40">
-                Awaiting MT5
+                Awaiting MT5 bridge
               </p>
+
             </div>
           </div>
 
+          {/* Automation */}
           <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
+
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/25">
               AUTOMATION
             </p>
@@ -334,26 +473,28 @@ export default function DashboardPage() {
             </h2>
 
             <p className="mt-3 text-xs leading-5 text-white/25">
-              The Bullseye automation engine will run strategies through
-              the MT5 bridge once your trading infrastructure is online.
+              Bullseye will run your selected strategies through
+              the MT5 bridge once the trading infrastructure is online.
             </p>
 
             <div className="mt-5 flex items-center gap-2 rounded-xl border border-[#FFD60A]/10 bg-[#FFD60A]/[0.035] px-4 py-3">
+
               <StatusDot />
 
               <span className="text-[10px] font-medium text-white/40">
                 Infrastructure pending
               </span>
+
             </div>
           </div>
-
         </div>
 
         {/* Footer */}
         <div className="pb-8 pt-8 text-center text-[9px] font-semibold uppercase tracking-[0.25em] text-white/15">
           BULLSEYE FX • CONNECT • CONFIGURE • AUTOMATE
         </div>
+
       </section>
     </main>
   );
-                }
+            }
