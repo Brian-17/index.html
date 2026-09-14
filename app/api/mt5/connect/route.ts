@@ -1,6 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { createHash, createCipheriv, randomBytes } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabaseAdmin() {
@@ -19,36 +18,7 @@ function getSupabaseAdmin() {
   });
 }
 
-function encryptPassword(password: string) {
-  const secret = process.env.MT5_ENCRYPTION_SECRET;
-
-  if (!secret) {
-    throw new Error("MT5_ENCRYPTION_SECRET is missing");
-  }
-
-  // Derive a 32-byte encryption key from the server secret.
-  const key = createHash("sha256").update(secret).digest();
-
-  // AES-256-GCM requires a unique IV for every encryption.
-  const iv = randomBytes(12);
-
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
-
-  const encrypted = Buffer.concat([
-    cipher.update(password, "utf8"),
-    cipher.final(),
-  ]);
-
-  const authTag = cipher.getAuthTag();
-
-  return [
-    iv.toString("base64"),
-    authTag.toString("base64"),
-    encrypted.toString("base64"),
-  ].join(".");
-}
-
-export async function POST(req: Request) {
+export async function GET() {
   try {
     const { userId } = await auth();
 
@@ -59,61 +29,42 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
-
-    const login = String(body.login || "").trim();
-    const password = String(body.password || "");
-    const server = String(body.server || "").trim();
-
-    if (!login || !password || !server) {
-      return NextResponse.json(
-        { error: "All MT5 fields are required" },
-        { status: 400 }
-      );
-    }
-
-    const encryptedPassword = encryptPassword(password);
-
     const supabase = getSupabaseAdmin();
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("mt5_accounts")
-      .upsert(
-        {
-          user_id: userId,
-          login,
-          server,
-          encrypted_password: encryptedPassword,
-          status: "pending",
-          balance: 0,
-          equity: 0,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "user_id",
-        }
-      );
+      .select(
+        "login, server, status, balance, equity, connected_at, created_at, updated_at"
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
 
     if (error) {
-      console.error("Supabase MT5 account error:", error);
+      console.error("MT5 account lookup error:", error);
 
       return NextResponse.json(
-        { error: "Unable to save MT5 account" },
+        { error: "Unable to load MT5 account" },
         { status: 500 }
       );
     }
 
+    if (!data) {
+      return NextResponse.json({
+        connected: false,
+        account: null,
+      });
+    }
+
     return NextResponse.json({
-      success: true,
-      message: "MT5 account saved securely",
-      status: "pending",
+      connected: true,
+      account: data,
     });
   } catch (error) {
-    console.error("MT5 connection error:", error);
+    console.error("MT5 account API error:", error);
 
     return NextResponse.json(
-      { error: "Something went wrong while connecting MT5" },
+      { error: "Something went wrong" },
       { status: 500 }
     );
   }
-                       }
+       }
