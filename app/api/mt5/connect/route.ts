@@ -8,21 +8,23 @@ import {
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
-
 export const dynamic = "force-dynamic";
 
-/**
- * Create a server-side Supabase client.
- * Never expose the service-role key to the browser.
- */
 function getSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL;
+  const url =
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
   const serviceRoleKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !serviceRoleKey) {
+  if (!url) {
+    throw new Error("SUPABASE_URL is missing");
+  }
+
+  if (!serviceRoleKey) {
     throw new Error(
-      "Supabase environment variables are missing"
+      "SUPABASE_SERVICE_ROLE_KEY is missing"
     );
   }
 
@@ -34,10 +36,6 @@ function getSupabaseAdmin() {
   });
 }
 
-/**
- * Encrypt the MT5 password using AES-256-GCM.
- * The encryption secret must remain on the server.
- */
 function encryptPassword(password: string): string {
   const secret = process.env.MT5_ENCRYPTION_SECRET;
 
@@ -73,26 +71,28 @@ function encryptPassword(password: string): string {
   ].join(".");
 }
 
-/**
- * POST /api/mt5/connect
- *
- * Saves the authenticated user's MT5 account details.
- * This saves the credentials securely; it does not
- * establish a live connection to the MT5 terminal.
- */
 export async function POST(req: Request) {
+  let stage = "starting";
+
   try {
-    // 1. Verify the user is signed in with Clerk.
+    // 1. Clerk authentication
+    stage = "checking authentication";
+
     const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json(
-        { error: "Not logged in" },
+        {
+          error: "Not logged in",
+          stage,
+        },
         { status: 401 }
       );
     }
 
-    // 2. Read and validate the submitted fields.
+    // 2. Read request
+    stage = "reading request";
+
     let body: {
       login?: unknown;
       password?: unknown;
@@ -103,7 +103,10 @@ export async function POST(req: Request) {
       body = await req.json();
     } catch {
       return NextResponse.json(
-        { error: "Invalid request body" },
+        {
+          error: "Invalid request body",
+          stage,
+        },
         { status: 400 }
       );
     }
@@ -114,21 +117,28 @@ export async function POST(req: Request) {
 
     if (!login || !password || !server) {
       return NextResponse.json(
-        { error: "All MT5 fields are required" },
+        {
+          error: "All MT5 fields are required",
+          stage,
+        },
         { status: 400 }
       );
     }
 
-    // 3. Encrypt the password before storing it.
+    // 3. Encrypt password
+    stage = "encrypting password";
+
     const encryptedPassword =
       encryptPassword(password);
 
-    // 4. Create the server-side database client.
+    // 4. Create Supabase client
+    stage = "creating database client";
+
     const supabase = getSupabaseAdmin();
 
-    // 5. Save the account.
-    // A user's existing account is updated rather
-    // than creating duplicate rows.
+    // 5. Save MT5 account
+    stage = "saving MT5 account";
+
     const { error } = await supabase
       .from("mt5_accounts")
       .upsert(
@@ -154,12 +164,15 @@ export async function POST(req: Request) {
       );
 
       return NextResponse.json(
-        { error: "Unable to save MT5 account" },
+        {
+          error: "Unable to save MT5 account",
+          stage,
+          databaseError: error.message,
+        },
         { status: 500 }
       );
     }
 
-    // 6. Return success without returning credentials.
     return NextResponse.json(
       {
         success: true,
@@ -169,20 +182,23 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    // Do not log the submitted password or secrets.
-    console.error(
-      "MT5 connection error:",
+    const message =
       error instanceof Error
         ? error.message
-        : "Unknown server error"
+        : "Unknown server error";
+
+    console.error(
+      "MT5 connection error:",
+      stage,
+      message
     );
 
     return NextResponse.json(
       {
-        error:
-          "Something went wrong while connecting MT5",
+        error: message,
+        stage,
       },
       { status: 500 }
     );
   }
-}
+      }
