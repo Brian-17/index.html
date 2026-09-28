@@ -1,76 +1,50 @@
-import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
-import { NextResponse } from "next/server";
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url ||!key) throw new Error("Missing Supabase env vars");
-  return createClient(url, key);
-}
-
-function encrypt(text: string) {
-  const secret = process.env.MT5_ENCRYPTION_SECRET;
-  if (!secret) throw new Error("Missing MT5_ENCRYPTION_SECRET - add 32 char string in Vercel env vars");
-  if (secret.length!== 32) throw new Error("MT5_ENCRYPTION_SECRET must be exactly 32 characters");
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(secret), iv);
-  let enc = cipher.update(text, 'utf8', 'hex');
-  enc += cipher.final('hex');
-  const tag = cipher.getAuthTag().toString('hex');
-  return `${iv.toString('hex')}:${tag}:${enc}`;
-}
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { encrypt } from '@/lib/encryption';
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.json({ error: "Please sign in again" }, { status: 401 });
+    const { login, password, server } = await req.json();
 
-    const body = await req.json();
-    const login = body.login?.toString().trim();
-    const password = body.password?.toString();
-    const server = body.server?.toString().trim();
-
-    if (!login ||!password ||!server) {
-      return NextResponse.json({ error: "All fields required" }, { status: 400 });
+    if (!login || !password || !server) {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    const supabase = getSupabase();
+    // Validate secret length early with trim
+    const secretRaw = process.env.MT5_ENCRYPTION_SECRET?.trim();
+    if (!secretRaw || secretRaw.length !== 32) {
+      console.error(`SECRET LENGTH: ${secretRaw?.length} - value: [${secretRaw}]`);
+      return NextResponse.json(
+        { error: `MT5_ENCRYPTION_SECRET must be exactly 32 characters (current: ${secretRaw?.length || 0})` },
+        { status: 500 }
+      );
+    }
 
-    // Delete old for this user to avoid duplicates
-    await supabase.from('mt5_accounts').delete().eq('user_id', userId);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    const { data, error } = await supabase.from('mt5_accounts').insert({
-      user_id: userId,
-      broker: 'HFM',
-      account_number: login,
-      login: login,
-      server: server,
-      password_encrypted: encrypt(password),
-      encrypted_login: encrypt(login),
-      encrypted_password: encrypt(password),
-      encrypted_server: encrypt(server),
-    }).select().single();
+    const encryptedPassword = encrypt(password);
 
-    if (error) throw new Error(error.message);
+    // Get user - adjust if you use auth
+    const { data: { user } } = await supabase.auth.getUser();
+    // If you don't use supabase auth, use your own user id logic
 
-    return NextResponse.json({ success: true, account_number: login, server });
+    const { error } = await supabase.from('mt5_accounts').upsert({
+      mt5_login: login,
+      mt5_server: server,
+      encrypted_password: encryptedPassword,
+      is_connected: true,
+      user_id: user?.id || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'mt5_login' });
 
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, message: 'saved! Redirecting' });
   } catch (err: any) {
-    console.error("CONNECT API ERROR:", err);
+    console.error('MT5 Connect Error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-export async function GET() {
-  try {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.json([], { status: 401 });
-    const supabase = getSupabase();
-    const { data } = await supabase.from('mt5_accounts').select('account_number, server, broker').eq('user_id', userId).limit(5);
-    return NextResponse.json(data || []);
-  } catch {
-    return NextResponse.json([]);
   }
 }
