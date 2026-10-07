@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: "You must be signed in to connect MT5." },
+        { error: "You must be signed in." },
         { status: 401 }
       );
     }
@@ -27,35 +27,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check encryption secret
+    // Encryption secret
     const secret = process.env.MT5_ENCRYPTION_SECRET?.trim();
 
     if (!secret || secret.length !== 32) {
       return NextResponse.json(
         {
-          error:
-            "MT5_ENCRYPTION_SECRET must be exactly 32 characters.",
+          error: "MT5_ENCRYPTION_SECRET must be exactly 32 characters.",
         },
         { status: 500 }
       );
     }
 
-    // IMPORTANT:
-    // Use SUPABASE_URL, not NEXT_PUBLIC_SUPABASE_URL
+    // Supabase
     const supabaseUrl = process.env.SUPABASE_URL?.trim();
     const serviceRoleKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
     if (!supabaseUrl) {
       return NextResponse.json(
-        { error: "SUPABASE_URL is missing in Vercel." },
+        { error: "SUPABASE_URL is missing." },
         { status: 500 }
       );
     }
 
     if (!serviceRoleKey) {
       return NextResponse.json(
-        { error: "SUPABASE_SERVICE_ROLE_KEY is missing in Vercel." },
+        { error: "SUPABASE_SERVICE_ROLE_KEY is missing." },
         { status: 500 }
       );
     }
@@ -65,12 +63,11 @@ export async function POST(req: Request) {
       serviceRoleKey
     );
 
-    // Encrypt the MT5 password before saving
+    // Encrypt MT5 password
     const encryptedPassword = encrypt(password);
 
-    // Save the MT5 account
-    // We intentionally DO NOT use is_connected because
-    // that column is not present in your current table.
+    // Save MT5 account
+    // IMPORTANT: There is NO is_connected field here.
     const { error } = await supabase
       .from("mt5_accounts")
       .upsert(
@@ -100,7 +97,6 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: "MT5 account connected successfully.",
-      account_number: login,
     });
   } catch (error: any) {
     console.error("MT5 CONNECT ERROR:", error);
